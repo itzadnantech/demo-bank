@@ -26,6 +26,11 @@ if (isset($_POST)) {
 	$query = $conn->query("SELECT * FROM users WHERE id = 1"); 
 	if (mysqli_num_rows($query) == 1) { 
 		$rows = mysqli_fetch_array($query);
+		// $res = encryptData($cpassword);  
+		// echo '<pre>';
+		// print_r($res);
+		// echo '</pre>';
+		// die;
 		$password_db = decryptData($rows['password'], $rows['salt']);
 	}
 	 

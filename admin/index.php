@@ -1,5 +1,9 @@
 <?php
-require_once("../scripts/functions.php"); ?>   
+require_once("../scripts/functions.php");
+require_once("../includes/passwordsq.php");
+
+ 
+?>   
 <!DOCTYPE html>
 <html lang="en-US" class="js">
 <head>  
@@ -43,44 +47,53 @@ require_once("../scripts/functions.php"); ?>
                         </div>
                     </div><!-- .nk-block-head -->
                     <?php
-                    if (isset($_POST['loginForm'])) {
-    $email = filterString($_POST['email']);
-    $password = filterString($_POST['password']);
-    $errorMsg = 0;
-    if (empty($email) || empty($password)) {
-        echo "<div class='alert alert-danger alert-dismissible'>All fields are required!</div>";
-        $errorMsg = 1;
-    }
-   if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    }else{
-       $errorMsg = 1;
-        echo "<div class='alert alert-danger alert-dismissible'>Valid email is required!</div>";
-    }
+                        if (isset($_POST['loginForm'])) {
+                          
+                            $email = filterString($_POST['email']);
+                            $password = filterString($_POST['password']);
+                            $errorMsg = 0;
+                            if (empty($email) || empty($password)) {
+                                echo "<div class='alert alert-danger alert-dismissible'>All fields are required!</div>";
+                                $errorMsg = 1;
+                            }
+                            if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                            } else {
+                                $errorMsg = 1;
+                                echo "<div class='alert alert-danger alert-dismissible'>Valid email is required!</div>";
+                            }
 
-   
-    if($errorMsg == 0){
-    $pass = md5($password);
-    //$conn->set_charset('charset');
-    $query = $conn->query("SELECT * FROM users WHERE email = '$email' AND password = '$pass' AND id = 1");
-    if (mysqli_num_rows($query) < 1) {
-       echo "<div class='alert alert-danger alert-dismissible'>Invalid Email address or passwordd</div>"; 
-       
-    }else{
-         //echo "<div class='alert alert-success alert-dismissible'>You have successfully login!</div>";
-         $_SESSION['userAdmin'] = randomString(64);
-         $_SESSION['loggedAdmin'] = 1;
-         $token = $_SESSION['userAdmin'];
-        $ip = $_SERVER["REMOTE_ADDR"];
-        $dated = date("d M y, H:i a");
-        $browser = $_SERVER["HTTP_USER_AGENT"];
-        $queryyy = $conn->query("INSERT INTO login(ip, browser, dated, token, userid) VALUES ('$ip', '$browser', '$dated', '$token', 1)");
-         ?>
-         <meta http-equiv="refresh" content="0; url=account_manager?accessToken=<?php echo $_SESSION['userAdmin']; ?>"> 
-         <?php
-    }
-}
-                    }
-                    ?>
+
+                            if ($errorMsg == 0) {
+                                // $pass = md5($password);
+                                //$conn->set_charset('charset');
+                                // $query = $conn->query("SELECT * FROM users WHERE email = '$email' AND password = '$pass' AND id = 1");
+                                $query = $conn->query("SELECT * FROM users WHERE email = '$email'");
+                                if (mysqli_num_rows($query) < 1) {
+                                    echo "<div class='alert alert-danger alert-dismissible'>Invalid Email address or passwordd</div>";
+                                } else {
+                                    
+                                    $rows = mysqli_fetch_array($query);
+                                    $password_db = decryptData($rows['password'], $rows['salt']);
+                                    if ($password_db != $password) {
+                                        echo "<div class='alert alert-danger alert-dismissible'>Invalid Email address or passwordd</div>";
+                                      
+
+                                        
+                                    } else {
+                                        echo "<div class='alert alert-success alert-dismissible' style='color:green'>You have successfully login!</div>";
+                                        $_SESSION['userAdmin'] = randomString(64);
+                                        $_SESSION['loggedAdmin'] = 1;
+                                        $token = $_SESSION['userAdmin'];
+                                        $ip = $_SERVER["REMOTE_ADDR"];
+                                        $dated = date("d M y, H:i a");
+                                        $browser = $_SERVER["HTTP_USER_AGENT"];
+                                        $queryyy = $conn->query("INSERT INTO login(ip, browser, dated, token, userid) VALUES ('$ip', '$browser', '$dated', '$token', 1)");
+                                        echo '<meta http-equiv="refresh" content="0; url=account_manager?accessToken='.$_SESSION['userAdmin']. '">';
+                                    }
+                                }
+                            }
+                        } ?>
+
                     <form action="#" method="post">
                         <div class="form-group">
                             <div class="form-label-group">
@@ -122,3 +135,7 @@ require_once("../scripts/functions.php"); ?>
 </body>
 
 </html>
+
+
+
+ 
